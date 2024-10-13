@@ -27,7 +27,7 @@ Ten projekt zawiera statyczną stronę hostowaną w bucketcie **AWS S3**, z proc
 - **AWS CloudFront**: CDN przyspieszający dostarczanie treści.
 - **Cypress**: Narzędzie do testów end-to-end, które sprawdza funkcjonalności strony.
 - **Terraform**: Używany do automatyzacji tworzenia infrastruktury na AWS.
-- **AWS IAM**: Stowrzony user z tagami umozliwiajacymi dostep do okre
+- **AWS IAM**: Stowrzony user z tagami umozliwiajacymi dostep do określonego bucketu
 
 ## CI/CD z GitHub Actions
 
