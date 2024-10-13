@@ -1,0 +1,55 @@
+stages:
+  - terraform
+  - deploy
+
+# Job do inicjalizacji Terraform
+terraform_init:
+  stage: terraform
+  image: hashicorp/terraform:latest
+  script:
+    - terraform init
+  only:
+    - main
+
+# Job do walidacji Terraform
+terraform_validate:
+  stage: terraform
+  image: hashicorp/terraform:latest
+  script:
+    - terraform validate
+  only:
+    - main
+
+# Job do planowania Terraform
+terraform_plan:
+  stage: terraform
+  image: hashicorp/terraform:latest
+  script:
+    - terraform plan
+  only:
+    - main
+
+# Job do wdrażania infrastruktury Terraform
+terraform_apply:
+  stage: terraform
+  image: hashicorp/terraform:latest
+  script:
+    - terraform apply -auto-approve
+  only:
+    - main
+  environment:
+    name: production
+  when: manual # Opcjonalnie: Jeśli chcesz, aby wdrożenie było ręcznie zatwierdzane
+
+# Job do synchronizacji plików strony na S3 po wdrożeniu infrastruktury
+deploy_to_s3:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  script:
+    - aws s3 sync ./ s3://marcel-xyz-demo-website --exclude ".git/*" --acl public-read
+  only:
+    - main
+  environment:
+    name: production
+  dependencies:
+    - terraform_apply

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dla SlickCloud</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dla SlickCloud</h1>
+            <p>Strona stworzona przez <strong>Marcela Raszewskiego</strong>, za pomocą Terraform i AWS.</p>
+        </header>
+
+        <section>
+            <h2>O stronie</h2>
+            <p>Ta strona jest hostowana na AWS S3 i dostarczana za pomocą CloudFront. Skonfigurowana w pełni przy użyciu Terraform.</p>
+            <button id="learnMoreBtn">Aby odtworzyć stronę rozwiń</button>
+            <div id="moreInfo" style="display:none;">
+                <section>
+                    <h2>Skrypt Python </h2>
+                    <p>Aby odtworzyć stronę, wykonaj następujące kroki:</p>
+                    <ol>
+                        <li>Pobierz i zainstaluj AWS CLI oraz Terraform CLI na swoim komputerze.</li>
+                        <li>Skonfiguruj dostęp IAM na AWS, aby mieć dostęp do zasobów (S3, CloudFront, itp.).</li>
+                        <li>Skopiuj poniższy kod Pythona do edytora, takiego jak Visual Studio Code.</li>
+                        <li>Uruchom kod Pythona, aby zautomatyzować wdrożenie infrastruktury za pomocą Terraform.</li>
+                    </ol>
+
+                    <div class="code-container">
+                        <button class="copy-btn" id="copyCodeBtn">Kopiuj kod</button>
+                        <pre><code id="pythonCode">
+import os
+import subprocess
+
+def create_terraform_files():
+    terraform_code = """
+    provider "aws" {
+      region = "us-east-1"
+    }
+
+    resource "aws_s3_bucket" "website_bucket" {
+      bucket = "marcel-xyz-demo-website"
+
+      tags = {
+        Name = "XYZ Demo Site"
+      }
+    }
+
+    resource "aws_s3_bucket_website_configuration" "website" {
+      bucket = aws_s3_bucket.website_bucket.id
+
+      index_document {
+        suffix = "index.html"
+      }
+
+      error_document {
+        key = "error.html"
+      }
+    }
+
+    resource "aws_s3_bucket_policy" "bucket_policy" {
+      bucket = aws_s3_bucket.website_bucket.id
+
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Action    = "s3:GetObject"
+            Effect    = "Allow"
+            Resource  = "${aws_s3_bucket.website_bucket.arn}/*"
+            Principal = "*"
+          }
+        ]
+      })
+    }
+
+    resource "aws_cloudfront_distribution" "cdn_distribution" {
+      origin {
+        domain_name = aws_s3_bucket.website_bucket.bucket_regional_domain_name
+        origin_id   = "S3-XYZ-Demo"
+      }
+
+      enabled             = true
+      is_ipv6_enabled     = true
+      default_root_object = "index.html"
+
+      default_cache_behavior {
+        allowed_methods  = ["GET", "HEAD"]
+        cached_methods   = ["GET", "HEAD"]
+        target_origin_id = "S3-XYZ-Demo"
+
+        forwarded_values {
+          query_string = false
+          cookies {
+            forward = "none";
+          }
+        }
+
+        viewer_protocol_policy = "redirect-to-https";
+      }
+
+      restrictions {
+        geo_restriction {
+          restriction_type = "none";
+        }
+      }
+
+      price_class = "PriceClass_100";
+
+      viewer_certificate {
+        cloudfront_default_certificate = true;
+      }
+    }
+
+    output "website_url" {
+      value = aws_cloudfront_distribution.cdn_distribution.domain_name;
+    }
+    """
+
+    with open("main.tf", "w") as f:
+        f.write(terraform_code)
+
+def run_terraform():
+    try:
+        subprocess.run(["terraform", "init"], check=True)
+        subprocess.run(["terraform", "plan"], check=True)
+        subprocess.run(["terraform", "apply", "-auto-approve"], check=True)
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    create_terraform_files()
+    run_terraform()
+</code></pre>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 13.10.2024 Marcel Raszewski</p>
+            <p>Znajdź mnie na:</p>
+            <ul>
+                <li><a href="https://www.linkedin.com/in/marcel-raszewski-9031a6185/" target="_blank">LinkedIn</a></li>
+                <li><a href="https://github.com/Mrszew" target="_blank">GitHub</a></li>
+            </ul>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
