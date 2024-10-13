@@ -1,13 +1,10 @@
 name: Deploy to S3
 
 on:
-workflow_run:
-  workflows: ["Cypress Tests"]
-  types:
-    - completed
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Cypress Tests"] # Sprawdź nazwę workflow testów Cypress, upewnij się, że jest identyczna
+    types:
+      - completed
 
 jobs:
   deploy:
@@ -25,12 +22,12 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # Zmień na odpowiedni region dla swojego bucketu
+          aws-region: us-east-1 # Zmień region na odpowiedni dla Twojego bucketu
 
-      # Synchronizacja plików do bucketu S3
+      # Synchronizacja plików z folderu app/public do bucketu S3
       - name: Sync files to S3
         run: |
-          aws s3 sync .app/public s3://marcel-xyz-demo-website  --exclude ".git/*" --acl public-read
+          aws s3 sync ./app/public s3://marcel-xyz-demo-website --exclude ".git/*" --acl public-read
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
