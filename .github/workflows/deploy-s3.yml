@@ -11,7 +11,6 @@ workflow_run:
 
 jobs:
   deploy:
-    if:
     name: Sync files to S3
     runs-on: ubuntu-latest
 
