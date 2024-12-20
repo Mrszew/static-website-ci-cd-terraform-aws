@@ -1,4 +1,4 @@
-# Projekt statycznej strony z CI/CD przy użyciu GitHub Actions i Cypress dla SlickCloud
+# Projekt statycznej strony z CI/CD przy użyciu GitHub Actions i Cypress
 
 ## Opis projektu
 
