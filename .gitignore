@@ -4,4 +4,5 @@
 .terraform.lock.hcl
 *.log
 .DS_Store
+node_modules/demo-evidence/
 node_modules/
