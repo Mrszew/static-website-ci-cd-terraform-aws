@@ -1,6 +1,5 @@
-describe('template spec', ()=>  {
-    it('passes',()=>{
-        cy.visit('../app/public/index.html') 
-        cy.get('header').contains("Marcela Raszewskiego");
-    })
-})
+describe('Plik index.html', () => {
+  it('powinien zawierać słowo "Marcela Raszewskiego"', () => {
+    cy.readFile('app/public/index.html').should('include', 'Marcela Raszewskiego');
+  });
+});
