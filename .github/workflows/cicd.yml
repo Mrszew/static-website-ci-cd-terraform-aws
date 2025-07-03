@@ -1,4 +1,4 @@
- name: Multi-Environment CI/CD Pipeline
+name: Multi-Environment CI/CD Pipeline
 
 on:
   push:
