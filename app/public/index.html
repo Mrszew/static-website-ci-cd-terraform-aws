@@ -1,156 +1,74 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marcel Raszewski</title>
+    <title>Static Website CI/CD Demo</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Marcel Raszewski</h1>
-            <p>Strona stworzona przez <strong>Marcela Raszewskiego</strong>, za pomocą Terraform i AWS.</p>
+            <h1>🚀 Static Website CI/CD Demo</h1>
+            <p class="subtitle">Infrastructure as Code with Terraform & GitHub Actions</p>
+            <div class="environment-badge">Environment: <span id="env">Production</span></div>
         </header>
 
-        <section>
-            <h2>O stronie</h2>
-            <p>Ta strona jest hostowana na AWS S3 i dostarczana za pomocą CloudFront. Skonfigurowana w pełni przy użyciu Terraform.</p>
-            <button id="learnMoreBtn">Aby odtworzyć stronę rozwiń</button>
-            <div id="moreInfo" style="display:none;">
-                <section>
-                    <h2>Skrypt Python </h2>
-                    <p>Aby odtworzyć stronę, wykonaj następujące kroki:</p>
-                    <ol>
-                        <li>Pobierz i zainstaluj AWS CLI oraz Terraform CLI na swoim komputerze.</li>
-                        <li>Skonfiguruj dostęp IAM na AWS, aby mieć dostęp do zasobów (S3, CloudFront, itp.).</li>
-                        <li>Skopiuj poniższy kod Pythona do edytora, takiego jak Visual Studio Code.</li>
-                        <li>Uruchom  Pythona, aby zautomatyzować wdrożenie infrastruktury za pomocą Terraform.</li>
-                    </ol>
-
-                    <div class="code-container">
-                        <button class="copy-btn" id="copyCodeBtn">Kopiuj kod</button>
-                        <pre><code id="pythonCode">
-                          import os
-                          import subprocess
-                          
-                          def create_terraform_files(region, bucket_name, site_name):
-                              terraform_code = f"""
-                              provider "aws" {{
-                                region = "{region}"
-                              }}
-                          
-                              resource "aws_s3_bucket" "website_bucket" {{
-                                bucket = "{bucket_name}"
-                          
-                                tags = {{
-                                  Name = "{site_name}"
-                                }}
-                              }}
-                          
-                              resource "aws_s3_bucket_website_configuration" "website" {{
-                                bucket = aws_s3_bucket.website_bucket.id
-                          
-                                index_document {{
-                                  suffix = "index.html"
-                                }}
-                          
-                                error_document {{
-                                  key = "error.html"
-                                }}
-                              }}
-                          
-                              resource "aws_s3_bucket_policy" "bucket_policy" {{
-                                bucket = aws_s3_bucket.website_bucket.id
-                          
-                                policy = jsonencode({{
-                                  Version = "2012-10-17",
-                                  Statement = [
-                                    {{
-                                      Action    = "s3:GetObject",
-                                      Effect    = "Allow",
-                                      Resource  = "${{aws_s3_bucket.website_bucket.arn}}/*",
-                                      Principal = "*"
-                                    }}
-                                  ]
-                                }})
-                              }}
-                          
-                              resource "aws_cloudfront_distribution" "cdn_distribution" {{
-                                origin {{
-                                  domain_name = aws_s3_bucket.website_bucket.bucket_regional_domain_name
-                                  origin_id   = "S3-{bucket_name}"
-                                }}
-                          
-                                enabled             = true
-                                is_ipv6_enabled     = true
-                                default_root_object = "index.html"
-                          
-                                default_cache_behavior {{
-                                  allowed_methods  = ["GET", "HEAD"]
-                                  cached_methods   = ["GET", "HEAD"]
-                                  target_origin_id = "S3-{bucket_name}"
-                          
-                                  forwarded_values {{
-                                    query_string = false
-                                    cookies {{
-                                      forward = "none";
-                                    }}
-                                  }}
-                          
-                                  viewer_protocol_policy = "redirect-to-https";
-                                }}
-                          
-                                restrictions {{
-                                  geo_restriction {{
-                                    restriction_type = "none";
-                                  }}
-                                }}
-                          
-                                price_class = "PriceClass_100";
-                          
-                                viewer_certificate {{
-                                  cloudfront_default_certificate = true;
-                                }}
-                              }}
-                          
-                              output "website_url" {{
-                                value = aws_cloudfront_distribution.cdn_distribution.domain_name;
-                              }}
-                              """
-                          
-                              with open("main.tf", "w") as f:
-                                  f.write(terraform_code)
-                          
-                          def run_terraform():
-                              try:
-                                  subprocess.run(["terraform", "init"], check=True)
-                                  subprocess.run(["terraform", "plan"], check=True)
-                                  subprocess.run(["terraform", "apply", "-auto-approve"], check=True)
-                          
-                              except subprocess.CalledProcessError as e:
-                                  print(f"An error occurred: {e}")
-                          
-                          if __name__ == "__main__":
-                              region = input("Podaj region AWS (np. us-east-1): ")
-                              bucket_name = input("Podaj nazwę bucketu S3: ")
-                              site_name = input("Podaj nazwę strony: ")
-                          
-                              create_terraform_files(region, bucket_name, site_name)
-                              run_terraform()
-                          
-</code></pre>
+        <main>
+            <section class="features">
+                <h2>✨ Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🏗️ Infrastructure as Code</h3>
+                        <p>Terraform manages AWS resources</p>
                     </div>
-                </section>
-            </div>
-        </section>
+                    <div class="feature-card">
+                        <h3>🔄 CI/CD Pipeline</h3>
+                        <p>GitHub Actions automates deployment</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>☁️ Cloud Storage</h3>
+                        <p>S3 bucket with CloudFront CDN</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔒 Security</h3>
+                        <p>Encryption, versioning, IAM roles</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tech-stack">
+                <h2>🛠️ Tech Stack</h2>
+                <div class="tech-list">
+                    <span class="tech-tag">AWS S3</span>
+                    <span class="tech-tag">AWS CloudFront</span>
+                    <span class="tech-tag">Terraform</span>
+                    <span class="tech-tag">GitHub Actions</span>
+                    <span class="tech-tag">Cypress</span>
+                </div>
+            </section>
+
+            <section class="deployment-info">
+                <h2>📊 Deployment Info</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Environment:</strong> <span id="env-info">Production</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Deployed:</strong> <span id="deploy-time"></span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Version:</strong> <span id="version">1.0.0</span>
+                    </div>
+                </div>
+            </section>
+        </main>
 
         <footer>
-            <p>&copy; 13.10.2024 Marcel Raszewski</p>
-            <p>Znajdź mnie na:</p>
-            <ul>
-                <li><a href="https://github.com/Mrszew" target="_blank">GitHub</a></li>
-            </ul>
+            <p>Built with ❤️ for DevOps demonstration</p>
+            <a href="https://github.com/your-username/static-website-ci-cd-terraform-aws" target="_blank" class="github-link">
+                📁 View on GitHub
+            </a>
         </footer>
     </div>
 
