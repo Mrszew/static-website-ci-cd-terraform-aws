@@ -1,1 +1,114 @@
- 
+ name: Multi-Environment CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: Install dependencies
+        run: npm install
+      - name: Run unit tests
+        run: npm test
+      - name: Run integration tests
+        run: npx cypress run
+      - name: Build static website
+        run: |
+          echo "Building static website..."
+          mkdir -p dist
+          cp -r app/public/* dist/
+      - name: Build container image
+        run: |
+          docker build -t static-website:${{ github.sha }} .
+          docker tag static-website:${{ github.sha }} static-website:latest
+
+  deploy-dev:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    environment: development
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Deploy to development environment
+        run: |
+          aws s3 sync ./app/public s3://marcel-xyz-demo-website-dev --exclude ".git/*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Run acceptance tests on dev
+        run: |
+          sleep 30
+          npx cypress run --config baseUrl=https://d3bkw6ogs7ek14.cloudfront.net
+      - name: Validate dev deployment
+        run: |
+          curl -f https://d3bkw6ogs7ek14.cloudfront.net || exit 1
+          echo "Development deployment validated successfully"
+
+  deploy-prod:
+    needs: [build-and-test, deploy-dev]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Deploy to production environment
+        run: |
+          aws s3 sync ./app/public s3://marcel-xyz-demo-website --exclude ".git/*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Run smoke tests on production
+        run: |
+          sleep 30
+          npx cypress run --config baseUrl=https://d3vddmdxeldp8p.cloudfront.net
+      - name: Validate production deployment
+        run: |
+          curl -f https://d3vddmdxeldp8p.cloudfront.net || exit 1
+          echo "Production deployment validated successfully"
+
+  rollback:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Rollback to previous version
+        run: |
+          PREVIOUS_VERSION=$(aws s3api list-object-versions --bucket marcel-xyz-demo-website --prefix index.html --query 'Versions[1].VersionId' --output text)
+          aws s3api get-object --bucket marcel-xyz-demo-website --key index.html --version-id $PREVIOUS_VERSION ./app/public/index.html
+          aws s3 sync ./app/public s3://marcel-xyz-demo-website --exclude ".git/*"
