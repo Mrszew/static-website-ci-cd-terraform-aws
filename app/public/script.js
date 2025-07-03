@@ -23,31 +23,38 @@ document.getElementById("copyCodeBtn").addEventListener("click", function() {
 // Set deployment time
 document.addEventListener('DOMContentLoaded', function() {
     const deployTime = new Date().toLocaleString();
-    document.getElementById('deploy-time').textContent = deployTime;
-    
+    const deployTimeEl = document.getElementById('deploy-time');
+    if (deployTimeEl) deployTimeEl.textContent = deployTime;
+
     // Detect environment based on URL
+    const envEl = document.getElementById('env');
+    const envInfoEl = document.getElementById('env-info');
     const currentUrl = window.location.href;
-    if (currentUrl.includes('d3bkw6ogs7ek14.cloudfront.net')) {
-        // Development environment
-        document.getElementById('env').textContent = 'Development';
-        document.getElementById('env-info').textContent = 'Development';
-    } else {
-        // Production environment
-        document.getElementById('env').textContent = 'Production';
-        document.getElementById('env-info').textContent = 'Production';
+    if (envEl && envInfoEl) {
+        if (currentUrl.includes('d3bkw6ogs7ek14.cloudfront.net')) {
+            envEl.textContent = 'Development';
+            envInfoEl.textContent = 'Development';
+        } else {
+            envEl.textContent = 'Production';
+            envInfoEl.textContent = 'Production';
+        }
     }
-    
+
     // Add some interactive features
     const featureCards = document.querySelectorAll('.feature-card');
-    featureCards.forEach(card => {
-        card.addEventListener('click', function() {
-            this.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 200);
+    if (featureCards && featureCards.length > 0) {
+        featureCards.forEach(card => {
+            if (card) {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                });
+            }
         });
-    });
-    
+    }
+
     // Add loading animation
     document.body.style.opacity = '0';
     setTimeout(() => {
